@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t esinghal/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run esinghal/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t esinghal/multi-client ./client
+  - docker build -t esinghal/multi-nginx ./nginx
+  - docker build -t esinghal/multi-server ./server
+  - docker build -t esinghal/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push esinghal/multi-client
+  - docker push esinghal/multi-nginx
+  - docker push esinghal/multi-server
+  - docker push esinghal/multi-worker
